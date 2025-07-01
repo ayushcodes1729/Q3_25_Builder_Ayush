@@ -1,0 +1,3 @@
+[submodule "solana-starter"]
+	path = solana-starter
+	url = https://github.com/solana-turbin3/solana-starter.git
