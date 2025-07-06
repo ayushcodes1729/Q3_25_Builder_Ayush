@@ -5,7 +5,7 @@ console.log(`You have generated a new Solana Wallet: ${kp.publicKey.toBase58()}`
 console.log(`[${kp.secretKey.toString()}]`);
 
 function walletToBase58() {
-    const secretKey = bs58.encode(Keypair.secKey());
+    const secretKey = bs58.encode(kp.secretKey);
     const wallet = Keypair.fromSecretKey(bs58.decode(secretKey));
     console.log(`Wallet Public Key: ${wallet.publicKey.toBase58()}`);
     console.log(`Wallet Secret Key: ${secretKey}`);
@@ -15,8 +15,9 @@ function walletToBase58() {
 function base58ToWallet(base58String: string) {
     const secretKey = bs58.decode(base58String);
     const wallet = Keypair.fromSecretKey(secretKey);
-    console.log(wallet.secretKey);
+    console.log(`Secret key: ${wallet.secretKey}`);
+    console.log(`Secret key: ${wallet.publicKey}`);
 }
 
 const secKey = walletToBase58();
-base58ToWallet(secKey);
+base58ToWallet(kp.secretKey.toString());
