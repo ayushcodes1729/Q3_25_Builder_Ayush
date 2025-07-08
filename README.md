@@ -20,3 +20,8 @@ This module explores foundational Solana development using the `solana-starter` 
 - Demonstrated minting, metadata setup, and account creation for NFTs.
 
 ---
+
+### 🔹 Class 4 - Class 6: 
+
+- What is a Vault?
+- Vault is an account where we can deposit and withdraw tokens securely.
