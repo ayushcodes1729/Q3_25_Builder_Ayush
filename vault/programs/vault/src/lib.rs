@@ -12,9 +12,12 @@ pub mod vault {
         ctx.accounts.initialize(&ctx.bumps)
     }
 
-    pub fn deposit(ctx: Context<Payment>) -> Result<()> {
-        // ctx.accounts.deposit(&ctx.bumps)
-        Ok(())
+    pub fn deposit(ctx: Context<Payment>, amount: u64) -> Result<()> {
+        ctx.accounts.deposit(amount)
+    }
+
+    pub fn withdraw(ctx: Context<Payment>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw(amount)
     }
 }
 
@@ -46,15 +49,47 @@ pub struct Payment<'info>{
     #[account(
         mut,
         seeds = [b"vault", vault_state.key().as_ref()],
-        bump,
+        bump = vault_state.vault_bump,
     )]
     pub vault: SystemAccount<'info>,
     #[account(
         seeds = [b"state", user.key().as_ref()],
-        bump,
+        bump = vault_state.state_bump,
     )]
     pub vault_state : Account<'info, VaultState>,
     pub system_program: Program<'info, System>
+}
+
+impl<'info> Payment<'info> {
+    pub fn deposit(&mut self, amount: u64) -> Result<()> {
+        let cpi_program = self.system_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from: self.user.to_account_info(),
+            to: self.vault.to_account_info()
+        };
+
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        transfer(cpi_ctx, amount)
+    }
+    
+    pub fn withdraw(&mut self, amount: u64) -> Result<()> {
+        let cpi_program = self.system_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from: self.vault.to_account_info(),
+            to: self.user.to_account_info()
+        };
+
+        let seeds = &[b"vault", self.vault_state.to_account_info().key.as_ref(), &[self.vault_state.vault_bump]];
+
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+        transfer(cpi_ctx, amount)
+    }
 }
 
 impl<'info> Initialize<'info> {
