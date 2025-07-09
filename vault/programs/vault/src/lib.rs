@@ -60,6 +60,46 @@ pub struct Payment<'info>{
     pub system_program: Program<'info, System>
 }
 
+#[derive(Accounts)]
+pub struct CloseVault<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"vault", vault_state.key().as_ref()],
+        bump = vault_state.vault_bump,
+    )]
+    pub vault: SystemAccount<'info>,
+    #[account(
+        mut,
+        seeds = [b"state", user.key().as_ref()],
+        bump = vault_state.state_bump,
+        close = user    // This is to tell where to give back rent after the vault_state is deleted
+    )]
+    pub vault_state: Account<'info, VaultState>,
+    pub system_program: Program<'info, System>
+
+}
+
+impl<'info> CloseVault<'info> {
+    pub fn close(&mut self) -> Result<()> {
+        let cpi_program = self.system_program.to_account_info();
+        
+        let cpi_account = Transfer {
+            from: self.vault.to_account_info(),
+            to: self.user.to_account_info()
+        };
+
+        let seeds = &[b"vault", self.vault_state.to_account_info().key.as_ref(), &[self.vault_state.vault_bump]];
+
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_context = CpiContext::new_with_signer(cpi_program, cpi_account, signer_seeds);
+
+        transfer(cpi_context, self.vault.lamports())
+    }
+}
+
 impl<'info> Payment<'info> {
     pub fn deposit(&mut self, amount: u64) -> Result<()> {
         let cpi_program = self.system_program.to_account_info();
