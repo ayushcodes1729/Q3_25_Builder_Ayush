@@ -1,3 +1,6 @@
 [submodule "solana-starter"]
 	path = solana-starter
 	url = https://github.com/solana-turbin3/solana-starter.git
+[submodule "anchor-staking"]
+	path = anchor-staking
+	url = https://github.com/ayushcodes1729/anchor-staking
