@@ -25,4 +25,9 @@ pub mod anchor_escrow {
     pub fn refund(ctx: Context<Refund>) -> Result<()>{
         ctx.accounts.refund_and_close_vault()
     }
+
+    pub fn take(ctx: Context<Take>) -> Result<()> {
+        ctx.accounts.deposit_token_b()?;
+        ctx.accounts.transfer_and_close_vault()
+    }
 }
