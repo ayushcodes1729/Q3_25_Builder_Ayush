@@ -30,13 +30,6 @@ import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 // Airdrop some sols to both maker and taker
 // mint token A in makerAtaA and B in takerAtaB
 
-// All good test cases
-
-// Initialize the escrow
-// Make an offer x amount of token A to vault in the escrow
-// Transfer y amount of token B in maker_ata_B
-// Send x token A to taker_ata_A and close vault
-
 // Faulty test cases
 
 // Check for refund instrcution
@@ -253,5 +246,64 @@ describe("anchor-escrow", () => {
       updatedTakerAtaB.amount.toString(),
       (1000 * tokenB_decimals - recieve_amount.toNumber()).toString()
     );
+  });
+
+  it("Make and Refund", async () => {
+    const newSeed = new anchor.BN(2);
+    [escrowPda, escrowBump] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("escrow"),
+        maker.publicKey.toBuffer(),
+        newSeed.toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    vault = await getAssociatedTokenAddress(mintA, escrowPda, true);
+    const tx = await program.methods
+      .make(newSeed, deposit_amount, recieve_amount)
+      .accountsPartial({
+        maker: maker.publicKey,
+        escrow: escrowPda,
+        mintA,
+        mintB,
+        vault,
+        makerAtaA: makerAtaA.address,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      })
+      .signers([maker])
+      .rpc();
+
+    const oldMakerAtaA = await getAccount(connection, makerAtaA.address);
+    const beforeBalance = oldMakerAtaA.amount;
+
+    const refundTx = await program.methods
+      .refund()
+      .accountsPartial({
+        maker: maker.publicKey,
+        escrow: escrowPda,
+        mintA,
+        vault,
+        makerAtaA: makerAtaA.address,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      })
+      .signers([maker])
+      .rpc();
+
+    const newMakerAtaA = await getAccount(connection, makerAtaA.address);
+    const afterBalance = newMakerAtaA.amount;
+
+    assert.equal(afterBalance.toString(), (Number(beforeBalance)+ deposit_amount.toNumber()).toString());
+
+    try {
+      await getAccount(connection, vault);
+      assert.fail("Vault Account is closed");
+    } catch (error) {
+      expect(error.name).to.equal("TokenAccountNotFoundError");
+    }
   });
 });
