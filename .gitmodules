@@ -4,3 +4,6 @@
 [submodule "anchor-staking"]
 	path = anchor-staking
 	url = https://github.com/ayushcodes1729/anchor-staking
+[submodule "Capstone/chess-betting"]
+	path = Capstone/chess-betting
+	url = https://github.com/ayushcodes1729/chess-betting.git
