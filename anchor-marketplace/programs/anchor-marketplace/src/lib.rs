@@ -32,4 +32,8 @@ pub mod anchor_marketplace {
         ctx.accounts.transfer_sol()?;
         ctx.accounts.delist_nft()
     }
+
+    pub fn delist_nft(ctx: Context<DelistNft>) -> Result<()> {
+        ctx.accounts.transfer_back_nft()
+    }
 }
