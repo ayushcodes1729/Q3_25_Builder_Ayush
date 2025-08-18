@@ -26,4 +26,10 @@ pub mod anchor_marketplace {
         ctx.accounts.initialize_listing(price, ctx.bumps)?;
         ctx.accounts.transfer_nft()
     }
+
+    pub fn purchase_nft(ctx: Context<PurchaseNft>) -> Result<()> {
+        ctx.accounts.transfer_nft()?;
+        ctx.accounts.transfer_sol()?;
+        ctx.accounts.delist_nft()
+    }
 }
