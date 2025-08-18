@@ -21,4 +21,9 @@ pub mod anchor_marketplace {
         ctx.accounts.initialize_marketplace(fee_percentage, ctx.bumps)?;
         Ok(())
     }
+
+     pub fn list_nft(ctx: Context<ListNft>, price: u64) -> Result<()> {
+        ctx.accounts.initialize_listing(price, ctx.bumps)?;
+        ctx.accounts.transfer_nft()
+    }
 }
